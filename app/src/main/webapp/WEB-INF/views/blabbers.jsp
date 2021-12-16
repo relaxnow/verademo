@@ -82,7 +82,7 @@
 									<th></th>
 									<th class="commenterName"><a href="?sort=blab_name ASC">Name</a></th>
 									<th class="commenterJoinDate"><a
-										href="?sort=date_created DESC">Join date</a></th>
+										href="?sort=created_at DESC">Join date</a></th>
 									<th class="commenterListeners"><a
 										href="?sort=listeners DESC">Listeners</a></th>
 									<th></th>

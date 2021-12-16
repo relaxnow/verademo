@@ -427,9 +427,17 @@ public class BlabController {
 			@RequestParam(value = "sort", required = false) String sort,
 			Model model,
 			HttpServletRequest httpRequest) {
-		if (sort == null || sort.isEmpty()) {
+		// GOOD CODE
+		if (sort == null || sort.isEmpty() || sort.equals("blab_name ASC")) {
 			sort = "blab_name ASC";
+		} else if (sort.equals("created_at DESC")) {
+			sort = "created_at DESC";
+		} else if (sort.equals("listeners DESC")) {
+			sort = "listeners DESC";
+		} else {
+			throw new RuntimeException("Unrecognized sort option");
 		}
+		// GOOD CODE
 
 		String nextView = Utils.redirect("feed");
 		logger.info("Entering showBlabbers");
