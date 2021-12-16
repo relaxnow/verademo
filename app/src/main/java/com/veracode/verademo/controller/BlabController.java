@@ -428,12 +428,13 @@ public class BlabController {
 			Model model,
 			HttpServletRequest httpRequest) {
 		// GOOD CODE
+		String validatedSort;
 		if (sort == null || sort.isEmpty() || sort.equals("blab_name ASC")) {
-			sort = "blab_name ASC";
+			validatedSort = "blab_name ASC";
 		} else if (sort.equals("created_at DESC")) {
-			sort = "created_at DESC";
+			validatedSort = "created_at DESC";
 		} else if (sort.equals("listeners DESC")) {
-			sort = "listeners DESC";
+			validatedSort = "listeners DESC";
 		} else {
 			throw new RuntimeException("Unrecognized sort option");
 		}
@@ -459,7 +460,7 @@ public class BlabController {
 				+ " SUM(if(listeners.listener=?, 1, 0)) as listeners,"
 				+ " SUM(if(listeners.status='Active',1,0)) as listening"
 				+ " FROM users LEFT JOIN listeners ON users.username = listeners.blabber"
-				+ " WHERE users.username NOT IN (\"admin\",?)" + " GROUP BY users.username" + " ORDER BY " + sort + ";";
+				+ " WHERE users.username NOT IN (\"admin\",?)" + " GROUP BY users.username" + " ORDER BY " + validatedSort + ";";
 
 		try {
 			logger.info("Getting Database connection");
