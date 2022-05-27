@@ -1,0 +1,431 @@
+<style type="text/css">.good-code {
+    background-color: #eeffee;
+}
+
+.bad-code {
+    background-color: #ffeeee;
+}
+</style>
+<h1 id="why-do-you-detect-it">Why do you detect it?</h1>
+Attackers will often try to manipulate paths to gain more information about a system or gain unauthorised access to system or other user files.
+
+<h1 id="how-do-you-detect-it">How does the Veracode Static Analysis detect flaws of this category?</h1>
+In general Veracode Static Analysis finds this flaw as follows:
+
+<ol>
+    <li>The analysis searches your binaries for methods that operate on files (like &quot;new File&quot;).</li>
+    <li>The analysis traces every input into the filename to an application entry point.&nbsp;This can be from an HTTP
+        request, user supplied data or from a file or database query.
+    </li>
+    <li>If it can find such a path it will open a&nbsp;flaw.</li>
+</ol>
+
+<h1 id="how-can-I-fix-it">How can I fix it and get the Veracode Static Analysis to automatically detect my fix?</h1>
+Veracode Static Analysis does not support any
+<a href="https://docs.veracode.com/r/review_cleansers" target="_blank">Supported Cleansing Function</a> for this flaw.
+<br/>
+Flaws of this weakness category will commonly require
+<a href="https://docs.veracode.com/r/improve_mitigation" target="_blank">Mitigation by Design</a>
+but there are several strategies you can take to get our engine to automatically close flaws of this type.
+<br/>
+We&#39;ll look first at some strategies that remove the risk and that our engine will automatically detect, then we&#39;ll look at strategies that remove the risk but require
+<a href="https://docs.veracode.com/r/improve_mitigation" target="_blank">Mitigation by Design</a>.
+
+<h2 id="hardcode-the-value">Hardcode the value</h2>
+The quickest, but probably least practical solution, is to replace the dynamic file name with a hardcoded value, example in Java:
+
+<pre class="java bad-code" style="font-family:monospace;">
+<span style="color: #666666; font-style: italic;">// WARNING: DO NOT USE THIS, EXAMPLE VULNERABLE CODE</span>
+<span style="color: #003399;">File</span> f <span style="color: #339933;">=</span> <span
+        style="color: #000000; font-weight: bold;">new</span> <span style="color: #003399;">File</span><span
+        style="color: #009900;">(</span>configPath <span style="color: #339933;">+</span> <span style="color: #0000ff;">&quot;avatar.&quot;</span> <span
+        style="color: #339933;">+</span> request.<span style="color: #006633;">getParameter</span><span
+        style="color: #009900;">(</span><span style="color: #0000ff;">&quot;extension&quot;</span><span
+        style="color: #009900;">)</span> <span style="color: #009900;">)</span>
+</pre>
+<pre class="java good-code" style="font-family:monospace;">
+<span style="color: #003399;">String</span><span style="color: #009900;">[</span><span style="color: #009900;">]</span> allowedExtensions <span
+        style="color: #339933;">=</span> <span style="color: #000000; font-weight: bold;">new</span> <span
+        style="color: #003399;">String</span><span style="color: #009900;">[</span><span
+        style="color: #009900;">]</span><span style="color: #009900;">{</span><span style="color: #0000ff;">&quot;jpg&quot;</span>,<span
+        style="color: #0000ff;">&quot;gif&quot;</span>,<span style="color: #0000ff;">&quot;png&quot;</span><span
+        style="color: #009900;">}</span><span style="color: #339933;">;</span>
+<span style="color: #003399;">String</span> extension <span style="color: #339933;">=</span> <span
+        style="color: #0000ff;">&quot;png&quot;</span><span style="color: #339933;">;</span> <span
+        style="color: #666666; font-style: italic;">// Default extension</span>
+<span style="color: #000000; font-weight: bold;">for</span> <span style="color: #009900;">(</span><span
+        style="color: #003399;">String</span> allowedExtension<span
+        style="color: #339933;">:</span> allowedExtensions<span style="color: #009900;">)</span> <span
+        style="color: #009900;">{</span>
+  <span style="color: #000000; font-weight: bold;">if</span> <span
+        style="color: #009900;">(</span>allowedExtension.<span style="color: #006633;">equals</span><span
+        style="color: #009900;">(</span>request.<span style="color: #006633;">getParameter</span><span
+        style="color: #009900;">(</span><span style="color: #0000ff;">&quot;extension&quot;</span><span
+        style="color: #009900;">)</span><span style="color: #009900;">)</span><span
+        style="color: #009900;">)</span> <span style="color: #009900;">{</span>
+&nbsp;   extension <span style="color: #339933;">=</span> allowedExtension<span style="color: #339933;">;</span>
+&nbsp; <span style="color: #009900;">}</span>
+<span style="color: #009900;">}</span>
+<span style="color: #666666; font-style: italic;">// See &quot;Note on authorization&quot;</span>
+User user <span style="color: #339933;">=</span> getCurrentUser<span style="color: #009900;">(</span><span
+        style="color: #009900;">)</span><span style="color: #339933;">;</span>
+<span style="color: #000000; font-weight: bold;">if</span> <span style="color: #009900;">(</span><span
+        style="color: #339933;">!</span>userMayAccessFile<span style="color: #009900;">(</span>user, path<span
+        style="color: #009900;">)</span><span style="color: #009900;">)</span> <span style="color: #009900;">{</span>
+  <span style="color: #000000; font-weight: bold;">throw</span> <span
+        style="color: #000000; font-weight: bold;">new</span> AuthorizationException<span
+        style="color: #009900;">(</span><span style="color: #0000ff;">&quot;User may not access this file&quot;</span>, user<span
+        style="color: #009900;">)</span><span style="color: #339933;">;</span>
+<span style="color: #009900;">}</span>
+<span style="color: #003399;">File</span><span style="color: #009900;">(</span>configPath <span style="color: #339933;">+</span> <span
+        style="color: #0000ff;">&quot;avatar.&quot;</span> <span style="color: #339933;">+</span> extension<span
+        style="color: #009900;">)</span></pre>
+
+<h2 id="use-a-list-of-hardcoded-values">Use a list of hardcoded values</h2>
+A little more practical you can also use a list of values, but make sure you use the hardcoded values.<br/>
+<pre class="java bad-code" style="font-family:monospace;">
+<span style="color: #666666; font-style: italic;">// WARNING: DO NOT USE THIS, EXAMPLE VULNERABLE CODE</span>
+<span style="color: #003399;">File</span> f <span style="color: #339933;">=</span> <span
+        style="color: #000000; font-weight: bold;">new</span> <span style="color: #003399;">File</span><span
+        style="color: #009900;">(</span>configPath <span style="color: #339933;">+</span> <span style="color: #0000ff;">&quot;avatar.&quot;</span> <span
+        style="color: #339933;">+</span> request.<span style="color: #006633;">getParameter</span><span
+        style="color: #009900;">(</span><span style="color: #0000ff;">&quot;extension&quot;</span><span
+        style="color: #009900;">)</span> <span style="color: #009900;">)</span>
+</pre>
+Example in Java with values from a HashMap:
+<pre class="java good-code">
+<span style="color: #003399;">String</span><span style="color: #009900;">[</span><span style="color: #009900;">]</span> allowedExtensions <span
+        style="color: #339933;">=</span> <span style="color: #000000; font-weight: bold;">new</span> <span
+        style="color: #003399;">String</span><span style="color: #009900;">[</span><span
+        style="color: #009900;">]</span><span style="color: #009900;">{</span><span style="color: #0000ff;">&quot;jpg&quot;</span>,<span
+        style="color: #0000ff;">&quot;gif&quot;</span>,<span style="color: #0000ff;">&quot;png&quot;</span><span
+        style="color: #009900;">}</span><span style="color: #339933;">;</span>
+<span style="color: #003399;">String</span> extension <span style="color: #339933;">=</span> <span
+        style="color: #0000ff;">&quot;png&quot;</span><span style="color: #339933;">;</span> <span
+        style="color: #666666; font-style: italic;">// Default extension</span>
+<span style="color: #000000; font-weight: bold;">for</span> <span style="color: #009900;">(</span><span
+        style="color: #003399;">String</span> allowedExtension<span
+        style="color: #339933;">:</span> allowedExtensions<span style="color: #009900;">)</span> <span
+        style="color: #009900;">{</span>
+  <span style="color: #000000; font-weight: bold;">if</span> <span
+        style="color: #009900;">(</span>allowedExtension.<span style="color: #006633;">equals</span><span
+        style="color: #009900;">(</span>request.<span style="color: #006633;">getParameter</span><span
+        style="color: #009900;">(</span><span style="color: #0000ff;">&quot;extension&quot;</span><span
+        style="color: #009900;">)</span><span style="color: #009900;">)</span><span
+        style="color: #009900;">)</span> <span style="color: #009900;">{</span>
+&nbsp;   extension <span style="color: #339933;">=</span> allowedExtension<span style="color: #339933;">;</span>
+&nbsp; <span style="color: #009900;">}</span>
+<span style="color: #009900;">}</span>
+<span style="color: #666666; font-style: italic;">// See &quot;Note on authorization&quot;</span>
+User user <span style="color: #339933;">=</span> getCurrentUser<span style="color: #009900;">(</span><span
+        style="color: #009900;">)</span><span style="color: #339933;">;</span>
+<span style="color: #000000; font-weight: bold;">if</span> <span style="color: #009900;">(</span><span
+        style="color: #339933;">!</span>userMayAccessFile<span style="color: #009900;">(</span>user, path<span
+        style="color: #009900;">)</span><span style="color: #009900;">)</span> <span style="color: #009900;">{</span>
+  <span style="color: #000000; font-weight: bold;">throw</span> <span
+        style="color: #000000; font-weight: bold;">new</span> AuthorizationException<span
+        style="color: #009900;">(</span><span style="color: #0000ff;">&quot;User may not access this file&quot;</span>, user<span
+        style="color: #009900;">)</span><span style="color: #339933;">;</span>
+<span style="color: #009900;">}</span>
+<span style="color: #003399;">File</span><span style="color: #009900;">(</span>configPath <span style="color: #339933;">+</span> <span
+        style="color: #0000ff;">&quot;avatar.&quot;</span> <span style="color: #339933;">+</span> extension<span
+        style="color: #009900;">)</span></pre>
+<br/>
+Very important here is to use the value from the HashMap as this will allow our scanner to trace the input to a static value.
+<br/>
+&nbsp;
+<h1 id="other-solutions-that-remove-the-risk">What are some other solutions that remove the risk?</h1>
+A static engine is limited in what it can detect. It can only scan your code, it won&rsquo;t actually run your code (unlike Dynamic Scanning).
+So it won&rsquo;t pick up any custom validation (if conditions, regular expressions, etc.).
+But that doesn&rsquo;t mean that this is not a perfectly valid solution that removes the risk!
+<br/>
+However you will have to <a href="https://docs.veracode.com/r/improve_mitigation" target="_blank">propose a
+    mitigation</a>
+and have this approved by the security team within your organization.<br/>
+For Java you can have this done automatically by using a
+<a href="https://community.veracode.com/s/article/How-To-Use-Custom-Cleanser" target="_blank">Custom Cleanser
+    annotation/attribute</a>.
+While this is not a requirement, we do recommend this for projects that have ongoing development as this will remove any need for manual mitigation.
+
+<h2 id="validate-with-allowlist">Validate with an allowlist but use the input from the entry point</h2>
+As we mentioned at <b>Use a list of hardcoded
+    values</b>, you can use a hardcoded list and remove the risk but still use the data from the outside source. Veracode Static Analysis will not detect the if clause so you will have to
+<a href="https://docs.veracode.com/r/improve_mitigation" target="_blank">propose a
+    mitigation</a> specifying that you have this validation, where it is and how it blocks known bad values and contact the security team in your organization for approval (please note that Veracode does not approve or reject mitigation proposals).
+<br/>
+Example in Java:
+<pre class="java good-code" style="font-family:monospace;">
+<span style="color: #003399;">String</span> extension <span style="color: #339933;">=</span> request.<span
+        style="color: #006633;">getParameter</span><span style="color: #009900;">(</span><span style="color: #0000ff;">&quot;extension&quot;</span><span
+        style="color: #009900;">)</span><span style="color: #339933;">;</span>
+<span style="color: #003399;">File</span> f <span style="color: #339933;">=</span> <span
+        style="color: #000000; font-weight: bold;">new</span> <span style="color: #003399;">File</span><span
+        style="color: #009900;">(</span>buildValidAvatarPath<span style="color: #009900;">(</span>extension<span
+        style="color: #009900;">)</span><span style="color: #009900;">)</span>
+&nbsp;
+@FilePathCleanser
+<span style="color: #000000; font-weight: bold;">public</span> <span style="color: #003399;">String</span> buildValidAvatarPath<span
+        style="color: #009900;">(</span>extension<span style="color: #009900;">)</span> <span
+        style="color: #009900;">{</span>
+  <span style="color: #003399;">String</span><span style="color: #009900;">[</span><span
+        style="color: #009900;">]</span> allowedExtensions <span style="color: #339933;">=</span> <span
+        style="color: #000000; font-weight: bold;">new</span> <span style="color: #003399;">String</span><span
+        style="color: #009900;">[</span><span style="color: #009900;">]</span><span
+        style="color: #009900;">{</span><span style="color: #0000ff;">&quot;jpg&quot;</span>,<span
+        style="color: #0000ff;">&quot;gif&quot;</span>,<span style="color: #0000ff;">&quot;png&quot;</span><span
+        style="color: #009900;">}</span><span style="color: #339933;">;</span>
+  <span style="color: #003399;">String</span> extension <span style="color: #339933;">=</span> <span
+        style="color: #0000ff;">&quot;png&quot;</span><span style="color: #339933;">;</span> <span
+        style="color: #666666; font-style: italic;">// Default extension</span>
+  <span style="color: #000000; font-weight: bold;">for</span> <span style="color: #009900;">(</span><span
+        style="color: #003399;">String</span> allowedExtension<span
+        style="color: #339933;">:</span> allowedExtensions<span style="color: #009900;">)</span> <span
+        style="color: #009900;">{</span>
+&nbsp;   <span style="color: #000000; font-weight: bold;">if</span> <span style="color: #009900;">(</span>allowedExtension.<span
+        style="color: #006633;">equals</span><span style="color: #009900;">(</span>request.<span
+        style="color: #006633;">getParameter</span><span style="color: #009900;">(</span><span style="color: #0000ff;">&quot;extension&quot;</span><span
+        style="color: #009900;">)</span><span style="color: #009900;">)</span><span
+        style="color: #009900;">)</span> <span style="color: #009900;">{</span>
+&nbsp;&nbsp; &nbsp;  extension <span style="color: #339933;">=</span> request.<span
+        style="color: #006633;">getParameter</span><span style="color: #009900;">(</span><span style="color: #0000ff;">&quot;extension&quot;</span><span
+        style="color: #009900;">)</span><span style="color: #339933;">;</span>
+&nbsp;&nbsp;  <span style="color: #009900;">}</span>
+  <span style="color: #009900;">}</span>
+  <span style="color: #666666; font-style: italic;">// See &quot;Note on authorization&quot;</span>
+  User user <span style="color: #339933;">=</span> getCurrentUser<span style="color: #009900;">(</span><span
+        style="color: #009900;">)</span><span style="color: #339933;">;</span>
+  <span style="color: #000000; font-weight: bold;">if</span> <span style="color: #009900;">(</span><span
+        style="color: #339933;">!</span>userMayAccessFile<span style="color: #009900;">(</span>user, path<span
+        style="color: #009900;">)</span><span style="color: #009900;">)</span> <span style="color: #009900;">{</span>
+&nbsp;   <span style="color: #000000; font-weight: bold;">throw</span> <span style="color: #000000; font-weight: bold;">new</span> AuthorizationException<span
+        style="color: #009900;">(</span><span style="color: #0000ff;">&quot;User may not access this file&quot;</span>, user<span
+        style="color: #009900;">)</span><span style="color: #339933;">;</span>
+  <span style="color: #009900;">}</span>
+  <span style="color: #003399;">File</span><span style="color: #009900;">(</span>configPath <span
+        style="color: #339933;">+</span> <span style="color: #0000ff;">&quot;avatar.&quot;</span> <span
+        style="color: #339933;">+</span> extension<span style="color: #009900;">)</span>
+&nbsp;
+  <span style="color: #000000; font-weight: bold;">return</span> path<span style="color: #339933;">;</span>
+<span style="color: #009900;">}</span></pre>
+
+<h2 id="validate-with-a-simple-regex">Validate with a simple regex allowlist</h2>
+Sometimes the data is too dynamic to for a allowlist and you need a validation routine.<br/>
+If you rely on this type of solution&nbsp;
+<a href="https://docs.veracode.com/r/improve_mitigation" target="_blank">please propose a mitigation</a>
+and contact the security team in your organization for approval
+(please note that Veracode does not approve or reject mitigation proposals).
+<br/>
+Example in Java:
+<pre class="java" style="font-family:monospace;"><span style="color: #003399;">String</span> username <span
+        style="color: #339933;">=</span> request.<span style="color: #006633;">getParameter</span><span
+        style="color: #009900;">&#40;</span><span style="color: #0000ff;">&quot;username&quot;</span><span
+        style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+<span style="color: #003399;">File</span> f <span style="color: #339933;">=</span> <span
+            style="color: #000000; font-weight: bold;">new</span> <span style="color: #003399;">File</span><span
+            style="color: #009900;">&#40;</span>buildValidAvatarPath<span
+            style="color: #009900;">&#40;</span>username<span style="color: #009900;">&#41;</span><span
+            style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+&nbsp;
+@FilePathCleanser
+<span style="color: #000000; font-weight: bold;">public</span> <span
+            style="color: #000000; font-weight: bold;">static</span> <span style="color: #003399;">String</span> buildValidAvatarPath<span
+            style="color: #009900;">&#40;</span><span style="color: #003399;">String</span> username<span
+            style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
+  <span style="color: #000000; font-weight: bold;">if</span> <span style="color: #009900;">&#40;</span><span
+            style="color: #339933;">!</span>username.<span style="color: #006633;">match</span><span
+            style="color: #009900;">&#40;</span><span style="color: #0000ff;">&quot;[a-zA-Z0-9]&quot;</span><span
+            style="color: #009900;">&#41;</span><span style="color: #009900;">&#41;</span> <span
+            style="color: #009900;">&#123;</span>
+    <span style="color: #000000; font-weight: bold;">throw</span> <span
+            style="color: #000000; font-weight: bold;">new</span> ValidationException<span
+            style="color: #009900;">&#40;</span><span style="color: #0000ff;">&quot;Invalid username&quot;</span>, username<span
+            style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+  <span style="color: #009900;">&#125;</span>
+  <span style="color: #003399;">String</span> path <span style="color: #339933;">=</span> configPath <span
+            style="color: #339933;">+</span> <span style="color: #0000ff;">&quot;/&quot;</span> <span
+            style="color: #339933;">+</span> username <span style="color: #339933;">+</span> <span
+            style="color: #0000ff;">&quot;/avatar.png&quot;</span><span style="color: #339933;">;</span>
+  <span style="color: #666666; font-style: italic;">// See &quot;Note on authorization&quot;</span>
+  User user <span style="color: #339933;">=</span> getCurrentUser<span style="color: #009900;">&#40;</span><span
+            style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+  <span style="color: #000000; font-weight: bold;">if</span> <span style="color: #009900;">&#40;</span><span
+            style="color: #339933;">!</span>userMayAccessFile<span style="color: #009900;">&#40;</span>user, path<span
+            style="color: #009900;">&#41;</span><span style="color: #009900;">&#41;</span> <span
+            style="color: #009900;">&#123;</span>
+    <span style="color: #000000; font-weight: bold;">throw</span> <span
+            style="color: #000000; font-weight: bold;">new</span> AuthorizationException<span style="color: #009900;">&#40;</span><span
+            style="color: #0000ff;">&quot;User may not access this file&quot;</span>, user<span style="color: #009900;">&#41;</span><span
+            style="color: #339933;">;</span>
+  <span style="color: #009900;">&#125;</span>
+  <span style="color: #000000; font-weight: bold;">return</span> path<span style="color: #339933;">;</span>
+<span style="color: #009900;">&#125;</span></pre>
+
+<h2 id="c14n-and-validate">Canonicalise the input and validate the path</h2>
+For complex cases with many variable parts or complex input that cannot be easily validated you can also
+rely on the programming language to canonicalise the input.
+Canonicalisation is the process of transforming multiple possible inputs to 1 &#39;canonical&#39; input.
+<br/>
+For file paths this can be done with APIs like File.getFullPath. This will resolve any relative paths and return the full path.
+<br/>
+You must then use this canonical form to verify that the file path points to the correct location.<br/>
+If you rely on this type of solution
+<a href="https://docs.veracode.com/r/improve_mitigation" target="_blank">please propose a mitigation</a>
+and contact the security team in your organization for approval
+(please note that Veracode does not approve or reject mitigation proposals).
+<br/>
+Example of bad code in Java:
+<pre class="java bad-code" style="font-family:monospace;">
+<span style="color: #666666; font-style: italic;">// WARNING: DO NOT USE THIS, EXAMPLE VULNERABLE CODE</span>
+<span style="color: #003399;">String</span> path <span style="color: #339933;">=</span> imageUploadPath <span
+        style="color: #339933;">+</span> uid <span style="color: #339933;">+</span> <span
+        style="color: #339933;">&amp;</span>quot<span style="color: #339933;">;</span>_<span style="color: #339933;">&amp;</span>quot<span
+        style="color: #339933;">;</span> <span style="color: #339933;">+</span> filename
+<span style="color: #003399;">File</span> f <span style="color: #339933;">=</span> <span
+        style="color: #000000; font-weight: bold;">new</span> <span style="color: #003399;">File</span><span
+        style="color: #009900;">(</span>path<span style="color: #009900;">)</span></pre>
+Example of good code in Java:
+
+<pre class="java good-code" style="font-family:monospace;">
+<span style="color: #003399;">String</span> path <span style="color: #339933;">=</span> imageUploadPath <span
+        style="color: #339933;">+</span> uid <span style="color: #339933;">+</span> <span
+        style="color: #339933;">&amp;</span>quot<span style="color: #339933;">;</span>_<span style="color: #339933;">&amp;</span>quot<span
+        style="color: #339933;">;</span> <span style="color: #339933;">+</span> filename<span
+        style="color: #339933;">;</span>
+<span style="color: #003399;">File</span><span style="color: #009900;">(</span>validateImageUploadPath<span
+        style="color: #009900;">(</span>path<span style="color: #009900;">)</span><span style="color: #009900;">)</span><span
+        style="color: #339933;">;</span>
+&nbsp;
+@FilePathCleanser
+<span style="color: #000000; font-weight: bold;">public</span> <span style="color: #003399;">String</span> validateImageUploadPath<span
+        style="color: #009900;">(</span><span style="color: #003399;">String</span> path<span
+        style="color: #009900;">)</span> <span style="color: #009900;">{</span>
+  <span style="color: #003399;">String</span> absolutePath <span style="color: #339933;">=</span> <span
+        style="color: #003399;">File</span>.<span style="color: #006633;">getCanonicalPath</span><span
+        style="color: #009900;">(</span>path<span style="color: #009900;">)</span><span style="color: #339933;">;</span>
+<span style="color: #339933;">&amp;</span>nbsp<span style="color: #339933;">;</span> <span
+        style="color: #666666; font-style: italic;">// replace imageUploadPath with root dir for allowed uploads</span>
+  <span style="color: #000000; font-weight: bold;">if</span> <span style="color: #009900;">(</span><span
+        style="color: #339933;">!</span>absolutePath.<span style="color: #006633;">startsWith</span><span
+        style="color: #009900;">(</span>imageUploadPath<span style="color: #009900;">)</span><span
+        style="color: #009900;">)</span> <span style="color: #009900;">{</span>
+    <span style="color: #000000; font-weight: bold;">throw</span> <span
+        style="color: #000000; font-weight: bold;">new</span> ValidationException<span
+        style="color: #009900;">(</span><span style="color: #339933;">&amp;</span>quot<span
+        style="color: #339933;">;</span><span style="color: #003399;">Invalid</span> path constructed<span
+        style="color: #339933;">!&amp;</span>quot<span style="color: #339933;">;</span>, path, absolutePath<span
+        style="color: #009900;">)</span><span style="color: #339933;">;</span>
+  <span style="color: #009900;">}</span>
+  <span style="color: #666666; font-style: italic;">// See &amp;quot;Note on authorization&amp;quot;</span>
+  User user <span style="color: #339933;">=</span> getCurrentUser<span style="color: #009900;">(</span><span
+        style="color: #009900;">)</span><span style="color: #339933;">;</span>
+  <span style="color: #000000; font-weight: bold;">if</span> <span style="color: #009900;">(</span><span
+        style="color: #339933;">!</span>userMayAccessFile<span style="color: #009900;">(</span>user, path<span
+        style="color: #009900;">)</span><span style="color: #009900;">)</span> <span style="color: #009900;">{</span>
+    <span style="color: #000000; font-weight: bold;">throw</span> <span
+        style="color: #000000; font-weight: bold;">new</span> AuthorizationException<span
+        style="color: #009900;">(</span><span style="color: #339933;">&amp;</span>quot<span
+        style="color: #339933;">;</span>User may not access <span style="color: #000000; font-weight: bold;">this</span> file<span
+        style="color: #339933;">&amp;</span>quot<span style="color: #339933;">;</span>, user<span
+        style="color: #009900;">)</span><span style="color: #339933;">;</span>
+  <span style="color: #009900;">}</span>
+  <span style="color: #000000; font-weight: bold;">return</span> absolutePath<span style="color: #339933;">;</span>
+<span style="color: #009900;">}</span></pre>
+
+Example of good code in C#.NET:
+
+<pre class="csharp good-code" style="font-family:monospace;"><span
+        style="color: #0600FF; font-weight: bold;">public</span> <span
+        style="color: #0600FF; font-weight: bold;">static</span> <span
+        style="color: #6666cc; font-weight: bold;">void</span> validateImageUploadPath<span style="color: #008000;">&#40;</span><span
+        style="color: #6666cc; font-weight: bold;">string</span> path<span style="color: #008000;">&#41;</span>
+<span style="color: #008000;">&#123;</span>
+    <span style="color: #6666cc; font-weight: bold;">string</span> absolutePath <span style="color: #008000;">=</span> Path<span
+            style="color: #008000;">.</span><span style="color: #0000FF;">GetFullPath</span><span
+            style="color: #008000;">&#40;</span>path<span style="color: #008000;">&#41;</span><span
+            style="color: #008000;">;</span>
+    <span style="color: #008080; font-style: italic;">// Replace imageUploadPath with root dir for allowed uploads</span>
+    <span style="color: #0600FF; font-weight: bold;">if</span> <span style="color: #008000;">&#40;</span><span
+            style="color: #008000;">!</span>absolutePath<span style="color: #008000;">.</span><span
+            style="color: #0000FF;">StartsWith</span><span style="color: #008000;">&#40;</span>imageUploadPath<span
+            style="color: #008000;">&#41;</span><span style="color: #008000;">&#41;</span>
+    <span style="color: #008000;">&#123;</span>
+        <span style="color: #0600FF; font-weight: bold;">throw</span> <span style="color: #008000;">new</span> ValidationException<span
+            style="color: #008000;">&#40;</span><span
+            style="color: #666666;">&quot;Invalid path constructed!&quot;</span>, path, absolutePath<span
+            style="color: #008000;">&#41;</span><span style="color: #008000;">;</span>
+    <span style="color: #008000;">&#125;</span>
+&nbsp;
+    <span style="color: #0600FF; font-weight: bold;">if</span> <span style="color: #008000;">&#40;</span><span
+            style="color: #008000;">!</span>userMayAccessFile<span style="color: #008000;">&#40;</span>user, path<span
+            style="color: #008000;">&#41;</span><span style="color: #008000;">&#41;</span>
+    <span style="color: #008000;">&#123;</span>
+        <span style="color: #0600FF; font-weight: bold;">throw</span> <span style="color: #008000;">new</span> AuthorizationException<span
+            style="color: #008000;">&#40;</span><span
+            style="color: #666666;">&quot;User may not access this file&quot;</span>, user<span style="color: #008000;">&#41;</span><span
+            style="color: #008000;">;</span>
+    <span style="color: #008000;">&#125;</span>
+&nbsp;
+    <span style="color: #0600FF; font-weight: bold;">return</span> absolutePath<span style="color: #008000;">;</span>
+<span style="color: #008000;">&#125;</span></pre>
+
+<h2>Rely on trusted configuration</h2>
+Veracode Static Analysis is configured to ignore input from common sources of configuration, but many times you will have to use a file that you know is managed by your administrator. It cannot tell which files are and are not under administrator control.
+<br/>
+Review the file name input to make sure no other untrusted data is used and if not,
+<a href="https://docs.veracode.com/r/improve_mitigation" target="_blank">please propose a mitigation</a>
+and contact the security team in your organization for approval
+(please note that Veracode does not approve or reject mitigation proposals).
+
+<pre class="java good-code" style="font-family:monospace;">
+    <span style="color: #003399;">String</span> imagePath <span style="color: #339933;">=</span> propertiesLoader.<span
+        style="color: #006633;">load</span><span style="color: #009900;">&#40;</span><span style="color: #0000ff;">&quot;my.image.path&quot;</span><span
+        style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+<span style="color: #003399;">File</span> f <span style="color: #339933;">=</span> <span
+        style="color: #000000; font-weight: bold;">new</span> <span style="color: #003399;">File</span><span
+        style="color: #009900;">&#40;</span>imagePath<span style="color: #009900;">&#41;</span>
+</pre>
+
+<h1>What are some common anti-patterns?</h1>
+
+<h2>Do not validate using a (regex) blacklist</h2>
+Do not try to blacklist &quot;..&quot; or &quot;.&quot; or &quot;/&quot;.<br/>
+While this will make an attackers job more difficult, it is not foolproof as attackers may abuse URL decoding and provide paths in the form of &quot;%3F&quot;. Or attackers may use symbolic links. Or attackers may simply provide a full path like &quot;/etc/passwd&quot;.
+<br/>
+Or future updates to the file system, programming language or application may make this blacklist out of date.<br/>
+For more information see the <a
+        href="https://www.owasp.org/index.php/Input_Validation_Cheat_Sheet#Whitelisting_vs_blacklisting"
+        target="_blank">OWASP documentation on blacklists</a>.<br/>
+We recommend against the use of blacklists and instead recommend you review this document for other (whitelist) methods.
+<span style="font-size: 16.003px;font-weight: bold;">&nbsp;</span>
+
+<h1>I don&rsquo;t think this works for me, what now?</h1>
+Most contracts include a limited amount of consultations with and email support by the Veracode Application Security Consulting team.
+If you are unsure if your contract includes it please contact your security team.
+<br/>
+To contact this team for detailed questions regarding remediation guidance please
+<a href="https://help.veracode.com/reader/kJC1iOtXp8N~rCtV8P9jhw/uWKML1udpHiFGB0JE~zg6w" target="_blank">contact
+    Veracode Support</a> or
+<a href="https://help.veracode.com/reader/DGHxSJy3Gn3gtuSIN2jkRQ/bLo7cMy~2mOWtJ~kbrVzDg" target="_blank">Schedule a
+    Consultation</a>.
+
+<h1>Where can I find more information?</h1>
+
+<ul>
+    <li><a href="https://www.owasp.org/index.php/Path_Traversal" target="_blank">OWASP: Path Traversal</a></li>
+    <li><a href="https://cwe.mitre.org/data/definitions/73.html" target="_blank">MITRE: CWE-73: External Control of File
+        Name or Path</a></li>
+</ul>
+
+<h1 id="notes-on-authorization">Note on authorization</h1>
+Correct remediation of CWE 73 does not require that you verify that the given user is allowed to access the given file, however it is still
+<b>highly</b>&nbsp;advisable to verify that you verify that the user accessing the file has the authorization to do so.
+<br/>
+<br/>
+How you do this is however very application dependent.
+Maybe you only have one user and only need to check that the user is logged in.
+Maybe you have many users that may belong to groups and need to check both the user and group permissions.
+<br/>
+For example you may allow public users to read a file, but only administrators to update a file.<br/>
+Or you may allow users to share files with each other but only have access if it&rsquo;s explicitly shared.<br/>
+Keep in mind the principle of least privilege, by default access should be denied.<br/>
+&nbsp;

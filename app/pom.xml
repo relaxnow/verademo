@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.3.1.RELEASE</version>
+		<version>2.5.13</version>
 		<relativePath/>
 	</parent>
 
@@ -34,6 +34,14 @@
 			<artifactId>jstl</artifactId>
 			<scope>provided</scope>
 		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.googlecode.gwt-crypto/gwt-crypto -->
+		<dependency>
+			<groupId>com.googlecode.gwt-crypto</groupId>
+			<artifactId>gwt-crypto</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+
 
 		<dependency>
 			<groupId>com.veracode.annotation</groupId>
@@ -70,6 +78,17 @@
 			<version>${springboot.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.70</version>
+		</dependency>
+
 
 		<!-- Logging dependencies -->
 		<dependency>
@@ -140,6 +159,9 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<executable>true</executable>
+				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>

@@ -9,6 +9,7 @@ import javax.servlet.ServletContext;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.bouncycastle.crypto.generators.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -38,6 +39,9 @@ public class ToolsController {
 			fortuneFile = "literature";
 		}
 		model.addAttribute("fortunes", fortune(fortuneFile));
+
+		byte[] password = BCrypt.generate("abc".getBytes(), "abc".getBytes(), 1);
+		model.addAttribute("password", password);
 
 		return "tools";
 	}
