@@ -20,5 +20,5 @@ jobs:
 # Package App
       - name: Package App
         run: |         
-         ./veracode package
+         ./veracode package -s ./ -a
          ls -lah
