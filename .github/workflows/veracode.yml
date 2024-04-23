@@ -1,0 +1,24 @@
+name: Veracode
+
+on:
+ # Enables manual runs
+  workflow_dispatch:
+
+jobs:
+  Veracode:
+    runs-on: [ubuntu-latest]
+    steps:
+   
+# Checkout code
+      - uses: actions/checkout@v2
+    
+# Setup Veracode
+      - name: Setup Veracode
+        run: |
+         curl -fsS https://tools.veracode.com/veracode-cli/install | sh
+
+# Package App
+      - name: Package App
+        run: |         
+         ./veracode package
+         ls -lah
